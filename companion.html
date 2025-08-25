@@ -1,0 +1,247 @@
+
+<!doctype html>
+<meta charset="utf-8">
+<title>Companion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{background:#0b1020;color:#e9ecf4;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0}
+header{display:flex;gap:10px;padding:12px 16px;background:#0e1428;border-bottom:1px solid #222844;position:sticky;top:0}
+h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:999px;border:1px solid #2b355f;background:#172046}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:#0f1428;border:1px solid #222844;border-radius:14px;padding:12px}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:8px}.kv div:nth-child(odd){color:#aab1bf}.kv div:nth-child(even){font-weight:600}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.controls button{padding:8px 12px;border:1px solid #38407a;background:#172046;color:#e9ecf4;border-radius:10px;cursor:pointer}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}}
+.small{font-size:12px;color:#96a0b8}
+</style>
+<header><h1>Companion</h1><span class="badge">Room: <span id="room">main</span></span><span class="badge">Last update: <span id="ts">—</span></span></header>
+<div class="wrap">
+  <div class="grid">
+    <section class="card"><h2>Timers</h2>
+      <div class="kv">
+        <div>Prep</div><div id="prepTimer">00:00</div>
+        <div>Session</div><div id="sessTimer">00:00</div>
+        <div>Prep length</div><div id="prepLen">—</div>
+        <div>Session length</div><div id="sessLen">—</div>
+      </div>
+      <div class="controls">
+        <button id="btnStartPrepSession">Start Prep+Session</button>
+        <button id="btnStartSession">Start Session</button>
+        <button id="btnPause">Pause</button>
+        <button id="btnResume">Resume</button>
+        <button id="btnReset">Reset</button>
+      </div>
+      <div class="small">If buttons do nothing, the Builder isn’t listening—use the updated index file.</div>
+    </section>
+    <section class="card"><h2>Session</h2>
+      <div class="kv">
+        <div>Difficulty</div><div id="difficulty">—</div>
+        <div>d10 (X)</div><div id="d10">—</div>
+        <div>Punishment</div><div id="punishment">—</div>
+        <div>Reward</div><div id="reward">—</div>
+        <div>Notes</div><div id="notes">—</div>
+      </div>
+    </section>
+    <section class="card"><h2>Builder Picks</h2>
+      <div class="kv" id="picksKv">
+        <div>Scenario / Clothing</div><div id="Scenario / Clothing">—</div>
+        <div>Hoods</div><div id="Hoods">—</div>
+        <div>Gags</div><div id="Gags">—</div>
+        <div>Extras</div><div id="Extras">—</div>
+        <div>Anal</div><div id="Anal">—</div>
+        <div>Fucking Machine</div><div id="Fucking Machine">—</div>
+        <div>Location</div><div id="Location">—</div>
+        <div>Position</div><div id="Position">—</div>
+        <div>Vibrating Wand</div><div id="Vibrating Wand">—</div>
+        <div>Audio</div><div id="Audio">—</div>
+        <div>Restriction</div><div id="Restriction">—</div>
+        <div>Nipples</div><div id="Nipples">—</div>
+        <div>E-Stim</div><div id="E-Stim">—</div>
+        <div>Collar</div><div id="Collar">—</div>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+
+(function(){
+  "use strict";
+  var ROOM = 'main';
+
+  function set(id,val){
+    var el=document.getElementById(id);
+    if(el){ el.textContent=(val==null||val==='')?'—':val; }
+  }
+  function fmtMMSS(x){
+    if(x==null) return "00:00";
+    var n = Number(x);
+    if(!isFinite(n)){
+      var m = String(x).match(/(\d{1,2}):(\d{2})/);
+      if(m){ n = (+m[1])*60 + (+m[2]); } else { n = 0; }
+    }
+    if(n>86400) n = Math.round(n/1000);
+    if(n<0) n = 0;
+    var mm = (n/60)|0, ss = n%60;
+    return (''+mm).padStart(2,'0')+':'+(''+ss).padStart(2,'0');
+  }
+  function normKey(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+  const DISPLAY_IDS = [
+    "Scenario / Clothing","Hoods","Gags","Extras","Anal","Fucking Machine",
+    "Location","Position","Vibrating Wand","Audio","Restriction","Nipples","E-Stim","Collar"
+  ];
+  const PICK_ALIASES = {
+    "Scenario / Clothing": ["scenario/clothing","scenario / clothing","scenario","clothing"],
+    "Vibrating Wand": ["vibratingwand","wand","vibe","vibrator"],
+    "E-Stim": ["e-stim","estim","e‑stim","e—stim","electrostim","electro","electroplay"],
+    "Fucking Machine": ["fuckingmachine","fmachine","f-machine","machine","sexmachine","thrust","thrusting","thrustingmachine","autothrust","auto-thrust","autothrustingmachine","automatictmachine","fm"]
+  };
+
+  function smartString(v){
+    if(v==null) return "";
+    if(typeof v==="object"){
+      if(Array.isArray(v)) return v.map(smartString).filter(Boolean).join(", ");
+      return Object.values(v).map(smartString).filter(Boolean).join(", ");
+    }
+    if(v===true) return "Yes";
+    if(v===false) return "No";
+    return String(v).trim();
+  }
+  function mapPickValue(picks, displayId){
+    if(!picks) return "";
+    const want = normKey(displayId);
+    if (picks[displayId] != null) return smartString(picks[displayId]);
+    const aliases = (PICK_ALIASES[displayId] || []).map(normKey);
+    const keys = Object.keys(picks);
+    for (const k of keys){
+      const nk = normKey(k);
+      if (nk === want || aliases.includes(nk)){ return smartString(picks[k]); }
+    }
+    for (const k of keys){
+      const nk = normKey(k);
+      if (nk.includes(want) || aliases.some(a => nk.includes(a))){ return smartString(picks[k]); }
+    }
+    return "";
+  }
+
+  async function get(){
+    const r = await fetch('/.netlify/functions/get-state?room='+ROOM+'&x='+(Date.now()%1e7), {cache:'no-store'});
+    return r.json();
+  }
+  async function post(st){
+    await fetch('/.netlify/functions/save-state', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({room:ROOM, state:st})
+    });
+  }
+
+  function pickNum(x){
+    if(x==null) return null;
+    if(typeof x==='number' && isFinite(x)) return x;
+    const m=String(x).match(/\d{1,3}/);
+    return m? +m[0] : null;
+  }
+  function getPath(obj, path){
+    try{ return path.split('.').reduce((o,k)=>o&&o[k], obj); }catch(e){ return undefined; }
+  }
+  function firstNonEmpty(obj, paths){
+    for(const p of paths){
+      const v = getPath(obj, p);
+      if(v!=null && v!=="") return v;
+    }
+    return null;
+  }
+
+  let _lastState = null;
+  let _tickHandle = null;
+
+  function apply(st){
+    _lastState = st || {};
+    const t = _lastState.timers || {};
+    set('prepTimer', fmtMMSS(t.prep));
+    set('sessTimer', fmtMMSS(t.session));
+
+    // lengths
+    let prepM = firstNonEmpty(_lastState, ["prepMins","prep","prepMinutes","prep_length"]);
+    if(prepM==null && _lastState.picks){
+      prepM = firstNonEmpty({p: _lastState.picks}, ["p.Prep (mins)","p.Prep length","p.Prep"]);
+    }
+    if(prepM==null && t.prep!=null){
+      prepM = Math.max(1, Math.round(Number(t.prep)/60000));
+    }
+    prepM = pickNum(prepM);
+
+    let sessM = firstNonEmpty(_lastState, ["sessionMins","lengthMins","length"]);
+    sessM = pickNum(sessM);
+
+    set('prepLen', prepM!=null ? (prepM+' min') : '—');
+    set('sessLen', sessM!=null ? (sessM+' min') : '—');
+
+    // session meta
+    set('difficulty', _lastState.difficulty ?? '—');
+    set('d10', _lastState.d10 ?? '—');
+
+    // punish/reward from multiple paths
+    const punish = firstNonEmpty(_lastState, ["outcomes.punishment","Punishment","punishment"])
+                || (_lastState.picks && (_lastState.picks["Punishment"] || _lastState.picks["punishment"])) || "—";
+    const reward = firstNonEmpty(_lastState, ["outcomes.reward","Reward","reward"])
+                || (_lastState.picks && (_lastState.picks["Reward"] || _lastState.picks["reward"])) || "—";
+    set('punishment', smartString(punish));
+    set('reward', smartString(reward));
+    set('notes', smartString(_lastState.notes || '—'));
+
+    // picks
+    const pk = _lastState.picks || {};
+    for(const id of DISPLAY_IDS){
+      const val = mapPickValue(pk, id);
+      set(id, val || '—');
+    }
+
+    // header info
+    var ts=document.getElementById('ts');
+    if(ts) ts.textContent = new Date().toLocaleTimeString();
+    var rm=document.getElementById('room');
+    if(rm) rm.textContent = _lastState.room || ROOM;
+  }
+
+  function startTicker(){
+    if(_tickHandle) return;
+    const step = () => {
+      try{
+        if(_lastState && _lastState.timers){
+          const t = _lastState.timers;
+          const now = Date.now();
+          let prepSec = Math.max(0, Math.round((t.prep||0)/1000));
+          let sessSec = Math.max(0, Math.round((t.session||0)/1000));
+          if(t.which === 'prep' && t.end){
+            prepSec = Math.max(0, Math.round((t.end - now)/1000));
+          } else if(t.which === 'session' && t.end){
+            sessSec = Math.max(0, Math.round((t.end - now)/1000));
+          }
+          set('prepTimer', fmtMMSS(prepSec));
+          set('sessTimer', fmtMMSS(sessSec));
+        }
+      }catch(e){ /* ignore */ }
+      _tickHandle = requestAnimationFrame(step);
+    };
+    _tickHandle = requestAnimationFrame(step);
+  }
+
+  async function refresh(){
+    try{
+      const j = await get();
+      const st = j && (j.state || j) || {};
+      apply(st);
+      startTicker();
+    }catch(e){ /* ignore */ }
+  }
+
+  // initial + poll
+  refresh();
+  setInterval(refresh, 1000);
+})();
+
+</script>
