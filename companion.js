@@ -1,5 +1,5 @@
 // companion.js
-const ROOM = 'main'; // Default room, can be dynamic if needed
+const ROOM = 'main'; // Default room
 const POLL_INTERVAL = 5000; // Poll every 5 seconds
 const API_URL = '/.netlify/functions/get-state';
 const SAVE_API_URL = '/.netlify/functions/save-state';
@@ -21,10 +21,10 @@ function updateTimers() {
 
   const now = Date.now();
   const prepRemaining = state.prepStartTime
-    ? Math.max(0, state.prepStartTime + state.prepLength * 60 * 1000 - now)
+    ? Math.max(0, state.prepStartTime + (state.prepLength || 0) * 60 * 1000 - now)
     : 0;
   const sessionRemaining = state.sessionStartTime
-    ? Math.max(0, state.sessionStartTime + state.sessionLength * 60 * 1000 - now)
+    ? Math.max(0, state.sessionStartTime + (state.sessionLength || 0) * 60 * 1000 - now)
     : 0;
 
   document.getElementById('prep-timer').textContent = formatTime(prepRemaining);
@@ -34,8 +34,16 @@ function updateTimers() {
 // Fetch state from Netlify function
 async function fetchState() {
   try {
-    const response = await fetch(`${API_URL}?room=${ROOM}`);
+    const response = await fetch(`${API_URL}?room=${ROOM}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      console.error(`Fetch state failed: ${response.status} ${response.statusText}`);
+      return;
+    }
     const data = await response.json();
+    console.log('Fetched state:', data); // Debug log
     state = data.state || {};
     updateUI();
   } catch (err) {
@@ -45,8 +53,13 @@ async function fetchState() {
 
 // Update UI with state data
 function updateUI() {
-  document.getElementById('room').textContent = ROOM指標
-    .textContent = ROOM;
+  if (!state) {
+    console.warn('No state available to update UI');
+    return;
+  }
+
+  // Basic info
+  document.getElementById('room').textContent = ROOM;
   document.getElementById('last-update').textContent = state.updatedAt
     ? new Date(state.updatedAt).toLocaleString()
     : '—';
@@ -82,7 +95,7 @@ function updateUI() {
   document.getElementById('e-stim').textContent = state.eStim || '—';
   document.getElementById('collar').textContent = state.collar || '—';
 
-  // Update timers if not paused
+  // Update timers
   updateTimers();
 }
 
@@ -96,6 +109,7 @@ async function saveState(newState) {
     });
     const data = await response.json();
     if (data.ok) {
+      console.log('State saved successfully:', newState); // Debug log
       await fetchState(); // Refresh state after saving
     } else {
       console.error('Error saving state:', data.error);
@@ -145,6 +159,7 @@ function resetTimers() {
 
 // Initialize
 function init() {
+  console.log('Initializing Companion...'); // Debug log
   fetchState(); // Initial state fetch
   setInterval(fetchState, POLL_INTERVAL); // Poll every 5 seconds
   timerInterval = setInterval(updateTimers, 1000); // Update timers every second
