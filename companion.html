@@ -1,0 +1,154 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Companion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{background:#0b1020;color:#e9ecf4;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0}
+header{display:flex;gap:10px;padding:12px 16px;background:#0e1428;border-bottom:1px solid #222844;position:sticky;top:0}
+h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:999px;border:1px solid #2b355f;background:#172046}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:#0f1428;border:1px solid #222844;border-radius:14px;padding:12px}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:8px}.kv div:nth-child(odd){color:#aab1bf}.kv div:nth-child(even){font-weight:600}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.controls button{padding:8px 12px;border:1px solid #38407a;background:#172046;color:#e9ecf4;border-radius:10px;cursor:pointer}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}}
+</style>
+<header><h1>Companion</h1><span class="badge">Room: <span id="room">main</span></span><span class="badge">Last update: <span id="ts">—</span></span></header>
+<div class="wrap">
+  <div class="grid">
+    <section class="card"><h2>Timers</h2>
+      <div class="kv">
+        <div>Prep</div><div id="prepTimer">00:00</div>
+        <div>Session</div><div id="sessTimer">00:00</div>
+        <div>Prep length</div><div id="prepLen">—</div>
+        <div>Session length</div><div id="sessLen">—</div>
+      </div>
+      <div class="controls">
+        <button id="btnStartPrepSession">Start Prep + Session</button>
+        <button id="btnStartSession">Start Session</button>
+        <button id="btnPause">Pause</button>
+        <button id="btnResume">Resume</button>
+      </div>
+    </section>
+    <section class="card"><h2>Session</h2>
+      <div class="kv">
+        <div>Difficulty</div><div id="difficulty">—</div>
+        <div>d10 (X)</div><div id="d10">—</div>
+        <div>Punishment</div><div id="punishment">—</div>
+        <div>Reward</div><div id="reward">—</div>
+        <div>Notes</div><div id="notes">—</div>
+      </div>
+    </section>
+    <section class="card"><h2>Builder Picks</h2>
+      <div class="kv">
+        <div>Scenario / Clothing</div><div id="Scenario / Clothing">—</div>
+        <div>Hoods</div><div id="Hoods">—</div>
+        <div>Gags</div><div id="Gags">—</div>
+        <div>Extras</div><div id="Extras">—</div>
+        <div>Anal</div><div id="Anal">—</div>
+        <div>Fucking Machine</div><div id="Fucking Machine">—</div>
+        <div>Location</div><div id="Location">—</div>
+        <div>Position</div><div id="Position">—</div>
+        <div>Vibrating Wand</div><div id="Vibrating Wand">—</div>
+        <div>Audio</div><div id="Audio">—</div>
+        <div>Restriction</div><div id="Restriction">—</div>
+        <div>Nipples</div><div id="Nipples">—</div>
+        <div>E-Stim</div><div id="E-Stim">—</div>
+        <div>Collar</div><div id="Collar">—</div>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var ROOM = 'main';
+
+  function $(s){ return document.querySelector(s); }
+  function set(id,val){ var el = document.getElementById(id); if(el) el.textContent = (val==null||val==='') ? '—' : val; }
+  function fmtSec(sec){ var s=Math.max(0, (sec||0)|0), m=(s/60)|0; return (''+m).padStart(2,'0')+':'+(''+(s%60)).padStart(2,'0'); }
+
+  async function fetchState(){
+    const r = await fetch('/.netlify/functions/get-state?room='+encodeURIComponent(ROOM)+'&x='+(Date.now()%1e7));
+    return r.json();
+  }
+  async function saveState(st){
+    await fetch('/.netlify/functions/save-state', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ room: ROOM, state: st })
+    });
+  }
+
+  function applyState(st){
+    try{
+      var t = st.timers || {};
+      // Timers are **SECONDS** now
+      set('prepTimer', fmtSec(t.prep));
+      set('sessTimer', fmtSec(t.session));
+
+      // Lengths: use new fields first, then fallbacks
+      var pmins = (st.prepMins!=null ? st.prepMins : null);
+      var smins = (st.sessionMins!=null ? st.sessionMins : (st.lengthMins!=null ? st.lengthMins : null));
+      set('prepLen', pmins!=null ? (pmins+' min') : '—');
+      set('sessLen', smins!=null ? (smins+' min') : '—');
+
+      set('difficulty', st.difficulty);
+      set('d10', st.d10);
+
+      // Outcomes (prefer st.outcomes; fallback to picks if provided that way)
+      if (st.outcomes){
+        set('punishment', st.outcomes.punishment || '—');
+        set('reward', st.outcomes.reward || '—');
+      } else if (st.picks){
+        set('punishment', st.picks.Punishment || st.picks.punishment || '—');
+        set('reward', st.picks.Reward || st.picks.reward || '—');
+      }
+
+      set('notes', (st.notes||[]).join(' • '));
+
+      // Picks
+      var p = st.picks || {};
+      Object.keys(p).forEach(function(key){
+        var el = document.getElementById(key);
+        if (el) el.textContent = p[key];
+      });
+    }catch(_){}
+  }
+
+  async function refresh(){
+    try{
+      const j = await fetchState();
+      if (j && j.state){ applyState(j.state); }
+      var tsEl = document.getElementById('ts');
+      if (tsEl) tsEl.textContent = new Date().toLocaleTimeString();
+    }catch(_){}
+  }
+
+  async function sendCmd(cmd){
+    try{
+      const j = await fetchState();
+      const st = (j && j.state) ? j.state : {};
+      st.control = { cmd: cmd, seq: Date.now() };
+      await saveState(st);
+    }catch(_){}
+  }
+
+  function bindControls(){
+    document.getElementById('btnStartPrepSession')?.addEventListener('click', function(){ sendCmd('startPrepSession'); });
+    document.getElementById('btnStartSession')?.addEventListener('click', function(){ sendCmd('startSession'); });
+    document.getElementById('btnPause')?.addEventListener('click', function(){ sendCmd('pause'); });
+    document.getElementById('btnResume')?.addEventListener('click', function(){ sendCmd('resume'); });
+  }
+
+  function init(){
+    var roomEl = document.getElementById('room');
+    if(roomEl) roomEl.textContent = ROOM;
+    bindControls();
+    refresh();
+    setInterval(refresh, 1200);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
