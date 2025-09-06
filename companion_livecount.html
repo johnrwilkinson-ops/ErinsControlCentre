@@ -1,0 +1,327 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Companion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{background:#0b1020;color:#e9ecf4;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0}
+  header{display:flex;gap:10px;padding:12px 16px;background:#0e1428;border-bottom:1px solid #222844;position:sticky;top:0;align-items:center;flex-wrap:wrap}
+  h1{font-size:18px;margin:0}
+  .badge{font-size:12px;padding:6px 8px;border-radius:999px;border:1px solid #2b355f;background:#172046}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .card{background:#0f1428;border:1px solid #222844;border-radius:14px;padding:12px}
+  .kv{display:grid;grid-template-columns:200px 1fr;gap:8px}.kv div:nth-child(odd){color:#aab1bf}.kv div:nth-child(even){font-weight:600}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .controls button{padding:8px 12px;border:1px solid #38407a;background:#172046;color:#e9ecf4;border-radius:10px;cursor:pointer}
+  @media(max-width:800px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}}
+  .small{font-size:12px;color:#96a0b8}
+  .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>Companion</h1>
+  <span class="badge">Room: <span id="room">main</span></span>
+  <span class="badge">Last update: <span id="ts">—</span></span>
+  <div class="right">
+    <button id="enableSound" class="badge" title="Click once to enable beeps/chime">Enable Sound</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="card"><h2>Timers</h2>
+      <div class="kv">
+        <div>Prep</div><div id="prepTimer">00:00</div>
+        <div>Session</div><div id="sessTimer">00:00</div>
+        <div>Prep length</div><div id="prepLen">—</div>
+        <div>Session length</div><div id="sessLen">—</div>
+      </div>
+      <div class="controls">
+        <button id="btnStartPrepSession">Start Prep+Session</button>
+        <button id="btnStartSession">Start Session</button>
+        <button id="btnPause">Pause</button>
+        <button id="btnResume">Resume</button>
+        <button id="btnReset">Reset</button>
+      </div>
+      <div class="small">Audio is Companion-only. Click <em>Enable Sound</em> once to allow beeps.</div>
+    </section>
+
+    <section class="card"><h2>Session</h2>
+      <div class="kv">
+        <div>Difficulty</div><div id="difficulty">—</div>
+        <div>d10 (X)</div><div id="d10">—</div>
+        <div>Punishment</div><div id="punishment">—</div>
+        <div>Reward</div><div id="reward">—</div>
+        <div>Notes</div><div id="notes">—</div>
+      </div>
+    </section>
+
+    <section class="card"><h2>Builder Picks</h2>
+      <div class="kv" id="picksKv">
+        <div>Scenario / Clothing</div><div id="Scenario / Clothing">—</div>
+        <div>Hoods</div><div id="Hoods">—</div>
+        <div>Gags</div><div id="Gags">—</div>
+        <div>Extras</div><div id="Extras">—</div>
+        <div>Anal</div><div id="Anal">—</div>
+        <div>Fucking Machine</div><div id="Fucking Machine">—</div>
+        <div>Location</div><div id="Location">—</div>
+        <div>Position</div><div id="Position">—</div>
+        <div>Vibrating Wand</div><div id="Vibrating Wand">—</div>
+        <div>Audio</div><div id="Audio">—</div>
+        <div>Restriction</div><div id="Restriction">—</div>
+        <div>Nipples</div><div id="Nipples">—</div>
+        <div>E-Stim</div><div id="E-Stim">—</div>
+        <div>Collar</div><div id="Collar">—</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // ====== Config ======
+  var ROOM = 'main'; // can be overridden by hash: #room=foo
+  try{
+    const m = location.hash.match(/room=([a-z0-9_-]{1,64})/i);
+    if(m){ ROOM = m[1].toLowerCase(); document.getElementById('room').textContent = ROOM; }
+  }catch(_){}
+
+  // ====== Audio (Companion-only) ======
+  let AUDIO_ENABLED = false;
+  let ECC_AUDIO_CTX;
+  function getAudioCtx(){
+    if(!ECC_AUDIO_CTX){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      ECC_AUDIO_CTX = new AC();
+    }
+    if (ECC_AUDIO_CTX && ECC_AUDIO_CTX.state === 'suspended'){
+      ECC_AUDIO_CTX.resume().catch(()=>{});
+    }
+    return ECC_AUDIO_CTX;
+  }
+  function beep({freq=880, ms=120, gain=0.15}={}){
+    try{
+      if(!AUDIO_ENABLED) return;
+      const ctx = getAudioCtx(); if(!ctx) return;
+      const osc = ctx.createOscillator();
+      const amp = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      amp.gain.value = gain;
+      osc.connect(amp); amp.connect(ctx.destination);
+      const now = ctx.currentTime;
+      osc.start(now); osc.stop(now + ms/1000);
+    }catch(_){}
+  }
+  async function playBeeps(n=3, gapMs=180, options={}){
+    for(let i=0;i<n;i++){
+      beep(options);
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(r=>setTimeout(r, gapMs));
+    }
+  }
+  function playEndChime(){
+    beep({freq:660, ms:140, gain:0.16});
+    setTimeout(()=>beep({freq:880, ms:220, gain:0.16}), 170);
+  }
+  function enableAudio(){
+    AUDIO_ENABLED = true;
+    getAudioCtx();
+    document.getElementById('enableSound').textContent = 'Sound Enabled';
+  }
+  document.getElementById('enableSound').addEventListener('click', enableAudio, {once:false});
+
+  // ====== Utilities ======
+  function set(id,val){ var el=document.getElementById(id); if(el){ el.textContent=(val==null||val==='')?'—':val; } }
+  function fmtMMSS(x){
+    if(x==null) return "00:00";
+    var n = Number(x);
+    if(!isFinite(n)){
+      var m = String(x).match(/(\d{1,2}):(\d{2})/);
+      if(m){ n = (+m[1])*60 + (+m[2]); } else { n = 0; }
+    }
+    if(n>86400) n = Math.round(n/1000); // allow ms input
+    if(n<0) n = 0;
+    var m = (n/60)|0, s = n%60;
+    return (''+m).padStart(2,'0')+':'+(''+s).padStart(2,'0');
+  }
+  function normKey(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+  function smartString(v){
+    if(v==null) return "";
+    if(typeof v==="object"){
+      if(Array.isArray(v)) return v.map(smartString).filter(Boolean).join(", ");
+      return Object.values(v).map(smartString).filter(Boolean).join(", ");
+    }
+    if(v===true) return "Yes";
+    if(v===false) return "No";
+    return String(v).trim();
+  }
+  function mapPickValue(picks, displayId){
+    if(!picks) return "";
+    const want = normKey(displayId);
+    const aliasesMap = {
+      "Scenario / Clothing": ["scenario/clothing","scenario / clothing","scenario","clothing"],
+      "Vibrating Wand": ["vibratingwand","wand","vibe","vibrator"],
+      "E-Stim": ["e-stim","estim","e‑stim","e—stim","electrostim","electro","electroplay"],
+      "Fucking Machine": ["fuckingmachine","fmachine","f-machine","machine","sexmachine","thrust","thrusting","autothrust","auto-thrust","autothrustingmachine","automatictmachine","fm"]
+    };
+    const aliases = (aliasesMap[displayId] || []).map(normKey);
+    const keys = Object.keys(picks);
+    if (picks[displayId] != null) return smartString(picks[displayId]);
+    for (const k of keys){
+      const nk = normKey(k);
+      if (nk === want || aliases.includes(nk)){ return smartString(picks[k]); }
+    }
+    for (const k of keys){
+      const nk = normKey(k);
+      if (nk.includes(want) || aliases.some(a => nk.includes(a))){ return smartString(picks[k]); }
+    }
+    return "";
+  }
+
+  async function get(){ const r=await fetch('/.netlify/functions/get-state?room='+ROOM+'&x='+(Date.now()%1e7)); return r.json(); }
+  async function postCommand(cmd){
+    try{
+      await fetch('/.netlify/functions/c4-command', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ room: ROOM, cmd })
+      });
+    }catch(_){}
+  }
+
+  // ====== Beep tracking (session-only) ======
+  let lastSessionMinuteAnnounced = null;
+  let lastRunning = false;
+
+  function maybeAudioForSession(sessionSeconds, running){
+    const mins = Math.floor((+sessionSeconds||0) / 60);
+    // Fire when minute value changes
+    if (mins !== lastSessionMinuteAnnounced){
+      if (running){
+        if (mins > 0 && mins % 10 === 0){
+          playBeeps(3, 180, {freq:880, ms:110, gain:0.14});
+        }
+        if (mins === 0 && lastSessionMinuteAnnounced !== null){
+          // session just reached zero while running
+          playEndChime();
+        }
+      }else if (lastRunning && mins === 0){
+        // edge case: we stopped exactly at end
+        playEndChime();
+      }
+      lastSessionMinuteAnnounced = mins;
+    }
+    lastRunning = !!running;
+  }
+
+  // ====== Apply state to UI ======
+  function apply(st){
+    const t = st.timers || {};
+    // Timers
+    set('prepTimer', fmtMMSS(t.prep));
+    set('sessTimer', fmtMMSS(t.session));
+
+    // Lengths (aggressive fallbacks)
+    const prepMinutes = st.prepMins ?? st.prep_minutes ?? null;
+    const sessMinutes = st.lengthMins ?? st.session_minutes ?? null;
+    set('prepLen', prepMinutes==null ? '—' : (prepMinutes + ' min'));
+    set('sessLen', sessMinutes==null ? '—' : (sessMinutes + ' min'));
+
+    // Session-only audio cues
+    const sessionSeconds = (t.session||0) / 1000;
+    const running = !!(t.which && t.end);
+    maybeAudioForSession(sessionSeconds, running);
+
+    // Metadata
+    set('difficulty', st.difficulty || '—');
+    set('d10', st.d10 == null ? '—' : st.d10);
+    set('punishment', (st.picks && (st.picks.punishment || st.picks.Punishment)) || '—');
+    set('reward', (st.picks && (st.picks.reward || st.picks.Reward)) || '—');
+    set('notes', Array.isArray(st.notes) && st.notes.length ? String(st.notes.length) + ' note(s)' : '—');
+
+    // Picks
+    const DISPLAY_IDS = [
+      "Scenario / Clothing","Hoods","Gags","Extras","Anal","Fucking Machine",
+      "Location","Position","Vibrating Wand","Audio","Restriction","Nipples","E-Stim","Collar"
+    ];
+    for (const id of DISPLAY_IDS){
+      const v = mapPickValue(st.picks || {}, id);
+      set(id, v || '—');
+    }
+  }
+
+  // ====== Poll loop ======
+  async function tick(){
+    try{
+      const js = await get();
+      if (js && js.state){
+        apply(js.state);
+        const tsEl = document.getElementById('ts');
+        if (tsEl){ tsEl.textContent = new Date(js.updatedAt || Date.now()).toLocaleTimeString(); }
+      }
+    }catch(_){}
+    setTimeout(tick, 800);
+  }
+  tick();
+
+  // ====== Controls → c4-command ======
+  document.getElementById('btnStartPrepSession').addEventListener('click', ()=>{ enableAudio(); postCommand('start-prep-session'); });
+  document.getElementById('btnStartSession').addEventListener('click', ()=>{ enableAudio(); postCommand('start-session'); });
+  document.getElementById('btnPause').addEventListener('click', ()=>{ postCommand('pause'); });
+  document.getElementById('btnResume').addEventListener('click', ()=>{ enableAudio(); postCommand('resume'); });
+  document.getElementById('btnReset').addEventListener('click', ()=>{ postCommand('reset'); });
+})();
+
+  // ====== Local live countdown (no layout changes) ======
+  let lastState = null;
+  let liveTickHandle = null;
+
+  function msToMMSS(ms){
+    if(ms == null) return "00:00";
+    const s = Math.max(0, Math.floor(ms/1000));
+    const m = Math.floor(s/60);
+    const ss = s % 60;
+    return String(m).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+  }
+
+  function renderLive(){
+    if(!lastState){ return; }
+    const t = lastState.timers || {};
+    const now = Date.now();
+    let prepRemain = t.prep || 0;
+    let sessRemain = t.session || 0;
+
+    // If running, derive from end timestamp. If paused or idle, show stored values.
+    if (t.which === 'prep' && t.end){
+      prepRemain = Math.max(0, t.end - now);
+    } else if (t.which === 'session' && t.end){
+      sessRemain = Math.max(0, t.end - now);
+    }
+    // Update DOM directly (matches existing IDs and markup)
+    const prepEl = document.getElementById('prepTimer');
+    const sessEl = document.getElementById('sessTimer');
+    if (prepEl) prepEl.textContent = msToMMSS(prepRemain);
+    if (sessEl) sessEl.textContent = msToMMSS(sessRemain);
+  }
+
+  function startLiveTick(){
+    if (liveTickHandle) return;
+    liveTickHandle = setInterval(renderLive, 250);
+  }
+
+  // Wrap original apply to capture state and kick off live tick
+  const __apply_orig = apply;
+  apply = function(st){
+    lastState = st;
+    __apply_orig(st);
+    startLiveTick();
+  };
+</script>
+</body>
+</html>
