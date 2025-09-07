@@ -12,7 +12,12 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
 .card{background:#0f1428;border:1px solid #222844;border-radius:14px;padding:12px}
 .kv{display:grid;grid-template-columns:200px 1fr;gap:8px}.kv div:nth-child(odd){color:#aab1bf}.kv div:nth-child(even){font-weight:600}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-.controls button{padding:8px 12px;border:1px solid #38407a;background:#172046;color:#e9ecf4;border-radius:10px;cursor:pointer}
+\1
+
+.controls button:hover{ background:#1b2752; border-color:#40509a; box-shadow:0 0 0 2px rgba(64,80,154,.25) inset; }
+.controls button:active{ transform: translateY(1px); }
+.controls button:focus{ outline:2px solid #40509a; outline-offset:2px; }
+
 @media(max-width:800px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}}
 .small{font-size:12px;color:#96a0b8}
 </style>
@@ -43,7 +48,7 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
         <div>d10 (X)</div><div id="d10">—</div>
         <div>Punishment</div><div id="punishment">—</div>
         <div>Reward</div><div id="reward">—</div>
-        <div>Notes</div><div id="notes"><pre id="notesDisplay" style="white-space:pre-wrap;word-wrap:break-word;margin:0;background:#0b0b0b12;padding:.5rem;border-radius:.5rem;min-height:2.2rem;"></pre><div class="small" style="margin-top:6px;">Modifiers:</div><ul id="modifiersDisplay" style="margin:6px 0 0 1rem;"></ul></div>
+        <div>Notes</div><div id="notes"><ul id="notesList"></ul></div>
       </div>
     </section>
     <section class="card"><h2>Builder Picks</h2>
@@ -66,10 +71,6 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
     </section>
   </div>
 </div>
-
-<!-- ECC drop-in files -->
-<script src="ecc-sync.js"></script>
-<script src="companion-notes-render.js"></script>
 <script>
 (function(){
   "use strict";
@@ -166,7 +167,7 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
       prepM = firstNonEmpty({p: st.picks}, ["p.Prep (mins)","p.Prep length","p.Prep"]);
     }
     if(prepM==null && t.prep!=null){
-      prepM = Math.round(Number(t.prep)/60000000); // from current timer
+      prepM = Math.round(Number(t.prep)/60000); // from current timer
     }
     prepM = pickNum(prepM);
 
@@ -221,5 +222,8 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
     setInterval(refresh, 1200);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-  })();
+  try{ renderNotes(st && st.notes); }catch(_){ }
+  try{ renderNotes(st && st.notes); }catch(_){ }
+  try{ renderNotes(st && st.notes); }catch(_){ }
+})();
 </script>
