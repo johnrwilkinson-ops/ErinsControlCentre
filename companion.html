@@ -48,7 +48,7 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
         <div>d10 (X)</div><div id="d10">—</div>
         <div>Punishment</div><div id="punishment">—</div>
         <div>Reward</div><div id="reward">—</div>
-        <div>Notes</div><div id="notes"><ul id="notesList"></ul></div>
+        <div>Notes</div><div id="notes"><pre id="notesDisplay" style="white-space:pre-wrap;word-wrap:break-word;margin:0;background:#0b0b0b12;padding:.5rem;border-radius:.5rem;min-height:2.2rem;"></pre><div class="small" style="margin-top:6px;">Modifiers:</div><ul id="modifiersDisplay" style="margin:6px 0 0 1rem;"></ul></div>
       </div>
     </section>
     <section class="card"><h2>Builder Picks</h2>
@@ -71,6 +71,10 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
     </section>
   </div>
 </div>
+
+<!-- ECC drop-in files -->
+<script src="ecc-sync.js"></script>
+<script src="companion-notes-render.js"></script>
 <script>
 (function(){
   "use strict";
@@ -222,8 +226,5 @@ h1{font-size:18px;margin:0}.badge{font-size:12px;padding:6px 8px;border-radius:9
     setInterval(refresh, 1200);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-  try{ renderNotes(st && st.notes); }catch(_){ }
-  try{ renderNotes(st && st.notes); }catch(_){ }
-  try{ renderNotes(st && st.notes); }catch(_){ }
-})();
+  })();
 </script>
