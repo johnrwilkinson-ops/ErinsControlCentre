@@ -5,19 +5,94 @@
 <meta charset="utf-8">
 <title>Companion</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<style> body{background:#0b1020;color:#e9ecf4;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0} header{display:flex;gap:10px;padding:12px 16px;background:#0e1428;border-bottom:1px solid #222844;position:sticky;top:0;align-items:center;flex-wrap:wrap} h1{font-size:18px;margin:0} .badge{font-size:12px;padding:6px 8px;border-radius:999px;border:1px solid #2b355f;background:#172046} .wrap{max-width:1100px;margin:0 auto;padding:16px} .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px} .card{background:#0f1428;border:1px solid #222844;border-radius:14px;padding:12px} .kv{display:grid;grid-template-columns:200px 1fr;gap:8px}.kv div:nth-child(odd){color:#aab1bf}.kv div:nth-child(even){font-weight:600} .controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0} .controls button{padding:8px 12px;border:1px solid #38407a;background:#172046;color:#e9ecf4;border-radius:10px;cursor:pointer} @media(max-width:800px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}} .small{font-size:12px;color:#96a0b8} .right{margin-left:auto;display:flex;gap:8px;align-items:center}
-</style> <style id="hover-fix-final">
+<style>
+  body{background:#0b1020;color:#e9ecf4;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0}
+  header{display:flex;gap:10px;padding:12px 16px;background:#0e1428;border-bottom:1px solid #222844;position:sticky;top:0;align-items:center;flex-wrap:wrap}
+  h1{font-size:18px;margin:0}
+  .badge{font-size:12px;padding:6px 8px;border-radius:999px;border:1px solid #2b355f;background:#172046}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .card{background:#0f1428;border:1px solid #222844;border-radius:14px;padding:12px}
+  .kv{display:grid;grid-template-columns:200px 1fr;gap:8px}.kv div:nth-child(odd){color:#aab1bf}.kv div:nth-child(even){font-weight:600}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .controls button{padding:8px 12px;border:1px solid #38407a;background:#172046;color:#e9ecf4;border-radius:10px;cursor:pointer}
+  @media(max-width:800px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:140px 1fr}}
+  .small{font-size:12px;color:#96a0b8}
+  .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+</style>
+
+<style id="hover-fix-final">
 .controls button:hover{ filter:brightness(1.08) !important; border-color:#40509a !important; box-shadow:0 0 0 2px rgba(64,80,154,.25) inset !important; }
 .controls button:active{ transform:translateY(1px) !important; }
 .controls button:focus{ outline:2px solid #40509a !important; outline-offset:2px !important; }
-</style> </head>
+</style>
+
+</head>
 <body>
-<header> <h1>Companion</h1> <span class="badge">Last update: <span id="ts">—</span></span> <div class="right"> <button id="enableSound" class="badge" title="Click once to enable beeps/chime">Enable Sound</button> </div>
-</header> <div class="wrap"> <div class="grid"> <section class="card"><h2>Timers</h2> <div class="kv"> <div>Prep</div><div id="prepTimer">00:00</div> <div>Session</div><div id="sessTimer">00:00</div> <div>Prep length</div><div id="prepLen">—</div> <div>Session length</div><div id="sessLen">—</div> </div> <div class="controls"> <button id="btnStartPrepSession">Start Prep+Session</button> <button id="btnStartSession">Start Session</button> <button id="btnPause">Pause</button> <button id="btnResume">Resume</button> <button id="btnReset">Reset</button> </div> <div class="small">Audio is Companion-only. Click <em>Enable Sound</em> once to allow beeps.</div> </section> <section class="card"><h2>Session</h2> <div class="kv">
-<div>d10 (X)</div><div id="d10">—</div> <div>Punishment</div><div id="punishment">—</div> <div>Reward</div><div id="reward">—</div>
-</div> </section> <section class="card"><h2>Builder Picks</h2> <div class="kv" id="picksKv"> <div>Difficulty</div><div id="difficulty">—</div> <div>Scenario / Clothing</div><div id="Scenario / Clothing">—</div> <div>Hoods</div><div id="Hoods">—</div> <div>Gags</div><div id="Gags">—</div> <div>Extras</div><div id="Extras">—</div> <div>Anal</div><div id="Anal">—</div> <div>Fucking Machine</div><div id="Fucking Machine">—</div> <div>Location</div><div id="Location">—</div> <div>Position</div><div id="Position">—</div> <div>Vibrating Wand</div><div id="Vibrating Wand">—</div> <div>Audio</div><div id="Audio">—</div> <div>Restriction</div><div id="Restriction">—</div> <div>Nipples</div><div id="Nipples">—</div> <div>E-Stim</div><div id="E-Stim">—</div> <div>Collar</div><div id="Collar">—</div> </div> </section> <section class="card"><h2>Notes &amp; Wheel Modifiers</h2> <div class="kv"><div>Manual Notes</div><div><pre id="notesDisplay" style="white-space:pre-wrap;word-wrap:break-word;margin:0;background:#0b0b0b12;padding:.5rem;border-radius:.5rem;min-height:2.2rem;"></pre></div> <div>Wheel Modifiers</div><div><ul id="modifiersDisplay" style="margin:0;padding-left:18px;max-height:200px;overflow:auto"></ul></div></div> <ul id="notesList" style="margin:0;padding-left:18px;max-height:200px;overflow:auto"></ul> </section>
+<header>
+  <h1>Companion</h1>
+  <span class="badge">Last update: <span id="ts">—</span></span>
+  <div class="right">
+    <button id="enableSound" class="badge" title="Click once to enable beeps/chime">Enable Sound</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="card"><h2>Timers</h2>
+      <div class="kv">
+        <div>Prep</div><div id="prepTimer">00:00</div>
+        <div>Session</div><div id="sessTimer">00:00</div>
+        <div>Prep length</div><div id="prepLen">—</div>
+        <div>Session length</div><div id="sessLen">—</div>
+      </div>
+      <div class="controls">
+        <button id="btnStartPrepSession">Start Prep+Session</button>
+        <button id="btnStartSession">Start Session</button>
+        <button id="btnPause">Pause</button>
+        <button id="btnResume">Resume</button>
+        <button id="btnReset">Reset</button>
+      </div>
+      <div class="small">Audio is Companion-only. Click <em>Enable Sound</em> once to allow beeps.</div>
+    </section>
+
+    <section class="card"><h2>Session</h2>
+      <div class="kv">
+<div>d10 (X)</div><div id="d10">—</div>
+        <div>Punishment</div><div id="punishment">—</div>
+        <div>Reward</div><div id="reward">—</div>
 </div>
-</div> <script>
+    </section>
+
+    <section class="card"><h2>Builder Picks</h2>
+      <div class="kv" id="picksKv">
+        <div>Difficulty</div><div id="difficulty">—</div>
+        <div>Scenario / Clothing</div><div id="Scenario / Clothing">—</div>
+        <div>Hoods</div><div id="Hoods">—</div>
+        <div>Gags</div><div id="Gags">—</div>
+        <div>Extras</div><div id="Extras">—</div>
+        <div>Anal</div><div id="Anal">—</div>
+        <div>Fucking Machine</div><div id="Fucking Machine">—</div>
+        <div>Location</div><div id="Location">—</div>
+        <div>Position</div><div id="Position">—</div>
+        <div>Vibrating Wand</div><div id="Vibrating Wand">—</div>
+        <div>Audio</div><div id="Audio">—</div>
+        <div>Restriction</div><div id="Restriction">—</div>
+        <div>Nipples</div><div id="Nipples">—</div>
+        <div>E-Stim</div><div id="E-Stim">—</div>
+        <div>Collar</div><div id="Collar">—</div>
+      </div>
+    </section>
+  
+    <section class="card"><h2>Notes &amp; Wheel Modifiers</h2>
+      <div class="kv"><div>Manual Notes</div><div><pre id="notesDisplay" style="white-space:pre-wrap;word-wrap:break-word;margin:0;background:#0b0b0b12;padding:.5rem;border-radius:.5rem;min-height:2.2rem;"></pre></div>
+      <div>Wheel Modifiers</div><div><ul id="modifiersDisplay" style="margin:0;padding-left:18px;max-height:200px;overflow:auto"></ul></div></div>
+      <ul id="notesList" style="margin:0;padding-left:18px;max-height:200px;overflow:auto"></ul>
+    </section>
+</div>
+</div>
+
+<script>
 (function(){
   "use strict";
   // ====== Config ======
@@ -297,7 +372,9 @@
   document.getElementById('btnResume').addEventListener('click', ()=>{ enableAudio(); postCommand('resume'); });
   document.getElementById('btnReset').addEventListener('click', ()=>{ postCommand('reset'); });
 })();
-</script> <script src="ecc-sync.js"></script>
+</script>
+
+<script src="ecc-sync.js"></script>
 <script>
 // ECC local notes + current-session-only modifiers (non-invasive; timers untouched)
 (function(){
@@ -379,5 +456,7 @@
   });
   setInterval(renderECC, 5000);
 })();
-</script> </body>
+</script>
+
+</body>
 </html>
