@@ -1,0 +1,18 @@
+ECC CLEANUP — 2025-09-09 09:39
+
+- Removed Snapshot UI and code:
+  • Deleted <button id="shareSnapshot"> and its event handler.
+  • Removed shareSnapshotLink() function.
+  • Scrubbed residual references to #shareSnapshot and textual “Snapshot”.
+
+- Removed debug lock-bypass CSS/JS blocks.
+
+- Kept working pieces:
+  • ecc-live-sync-v6 (state posting) intact.
+  • ecc-control-listener-v2 intact (Control4 button mapping + notes sync).
+
+- Serverless functions:
+  • c4-state.mjs: deduplicated mmss() helper; single top-level definition now.
+
+- Housekeeping:
+  • companion-notes-render.js removed from bundle (unused by companion.html).
