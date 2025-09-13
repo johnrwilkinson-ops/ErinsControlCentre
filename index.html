@@ -512,7 +512,7 @@ var ICON_LOC = {"Bed":"🛏","Floor":"🧱","Bathroom":"🛁","Shed":"🛖","Gym
 function locIcon(t){ return ICON_LOC[t] ? ICON_LOC[t]+" "+t : t }
 var DATA = {
   mergedWheel:[{label:"20 mins",weight:5},{label:"30 mins",weight:15},{label:"40 mins",weight:20},{label:"50 mins",weight:10},{label:"60 mins",weight:10},{label:"90 mins",weight:10},{label:"120 mins",weight:5},{label:"150 mins",weight:3},{label:"180 mins",weight:2},{label:"Re-roll & Double",weight:5},{label:"-1 day & Re-roll",weight:5},{label:"+1 day & Re-roll",weight:5},{label:"Erin’s Choice",weight:5}],
-  scenario:["My Choice","None/Naked","Bondage","Prisoner/Interrogation","Objectification (furniture/decoration)","Maid Service","Feminisation – Fishnets, Panties, Bra, Makeup","Service","Fully Clothed","Shirt Only","Cop Uniform","Fire Uniform","Latex"],
+  scenario:["My Choice","None/Naked","Bondage","Prisoner/Interrogation","Objectification (furniture/decoration)","Maid Service","Service","Fully Clothed","Shirt Only","Cop Uniform","Fire Uniform","Latex"],
   difficulty:["My Choice","Light","Moderate","Harsh","Extreme"],
   gags:["My Choice","None","Inflatable gag","Jennings","Tape","Dirty Panties in Mouth and tape","Ball gag",{label:"Deepthroat and suck a dildo",requires:function(ctx){return (['None','My Choice','Blindfold'].indexOf(ctx.hoodCompat||'None')!==-1)}}, "Ring gag","Bit gag",{label:"Dildo gag",requires:function(ctx){return (['Harsh','Extreme'].indexOf(ctx.difficulty)!==-1 && ctx.lengthMins<=30)}}],
   hoods:["My Choice","None","Blindfold","Latex",{label:"Latex Inflatable",requires:function(ctx){return (['Harsh','Extreme'].indexOf(ctx.difficulty)!==-1 && ctx.lengthMins<=20)}}, "Skull","Material","Pantyhose",{label:"Sensory Deprivation",requires:function(ctx){return true}}],
@@ -522,7 +522,7 @@ var DATA = {
   location:["My Choice","Bed","Floor","Bathroom","Shed","Gym","Living","Couch","Table","Sauna","Van"],
   position:["My Choice","Spreadeagle","Wrists to ankles","Frog tie",{label:"Hog tie",requires:function(ctx){return (['Harsh','Extreme'].indexOf(ctx.difficulty)!==-1 && ctx.lengthMins<=30)}}, "Kneeling",{label:"Fully Suspended",requires:function(ctx){return (['Harsh','Extreme'].indexOf(ctx.difficulty)!==-1 && ctx.lengthMins<=30)}}, "Partial Suspension","Sitting","Standing","All Fours","On a Chair"],
   wand:["My Choice","Yes","No"],
-  audio:["My Choice","None","Music","Sissy Hypno","Submissive Hypno","BDSM Video","Sex Video","Humiliation","White Noise"],
+  audio:["My Choice","None","Music","Submissive Hypno","BDSM Video","Sex Video","JOI","White Noise"],
   restriction:["My Choice","Handcuffs","Straps","Chain","Rope","Tape","Cable Ties"],
   nipples:["My Choice","None","Clover Clamps","Clothespins","Bulldog Clips","Cupping","String","Pincer Clamps","Clamp Clotheshanger","Chopsticks"],
   estim:["My Choice","None","Nipples","Anal","Roger","Balls","Ears"],
